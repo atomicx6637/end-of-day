@@ -44,6 +44,15 @@ for dir in "$PROJECTS_DIR"/*; do
             echo "Warning: No 'origin' remote configured."
         fi
 
+        # Convert https remotes to ssh to avoid password prompts
+        REMOTE_URL=$(git config --get remote.origin.url || echo "")
+        if [[ "$REMOTE_URL" == https://* ]]; then
+          NEW_URL="git@${REMOTE_URL#https://}" # remove https:// and prepend git@
+          NEW_URL="${NEW_URL/\//:}" # replace first / with :
+          echo "Converting remote URL to SSH: $NEW_URL"
+          git remote set-url origin "$NEW_URL"
+        fi
+
         # Check if there are any changes
         if [[ -z "$(git status --porcelain)" ]]; then
           echo "No changes to commit."
